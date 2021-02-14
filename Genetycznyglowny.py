@@ -152,10 +152,11 @@ def genetyczny(graf):
 
 #Ustawia nowe parametry algorytmu i generuje struktury pomocnicze (optymalizacyjne)
 def kalibrujAlgorytm(newN, newPopulacja = populacja, newGeneracje = generacje):
-    global n, populacja, generacje, indeksy, indeksy, stop
+    global n, populacja, generacje, indeksy, kolejnosc, wstepnaPopulacja, stop
     n = newN                                                   #liczba wierzcholkow
     populacja = newPopulacja
     generacje = newGeneracje
+    wstepnaPopulacja = populacja*4
     #sekcja optymalizacyjna
     indeksy = [i for i in range(n)] 
     kolejnosc = [i for i in range(populacja)]
@@ -219,16 +220,22 @@ def testuj(algorytm, graf):
         czasy.append(time.time() - start)
         odchyleniaWynik.append(statistics.stdev(wyniki))
         odchyleniaCzas.append(statistics.stdev(czasy))
-        
-    while (statistics.stdev(odchyleniaWynik)/math.sqrt(len(odchyleniaWynik)) > statistics.fmean(odchyleniaWynik)/20 or
-           statistics.stdev(odchyleniaCzas) /math.sqrt(len(odchyleniaCzas))  > statistics.fmean(odchyleniaCzas)/20):
-        print("ooj: ", statistics.stdev(odchyleniaWynik)/math.sqrt(len(odchyleniaWynik))/statistics.fmean(odchyleniaWynik) * 100)
-        print("oocz: ", statistics.stdev(odchyleniaCzas)/math.sqrt(len(odchyleniaCzas))/statistics.fmean(odchyleniaCzas) * 100)
-        start = time.time()
-        wyniki.append(ocena(algorytm(graf)))
-        czasy.append(time.time() - start)
-        odchyleniaWynik.append(statistics.stdev(wyniki))
-        odchyleniaCzas.append(statistics.stdev(czasy))
+
+    if (statistics.fmean(odchyleniaWynik) != 0):
+        while (statistics.stdev(odchyleniaWynik) / math.sqrt(len(odchyleniaWynik)) > statistics.fmean(
+                odchyleniaWynik) / 20 or
+               (statistics.fmean(odchyleniaCzas) != 0 and statistics.stdev(odchyleniaCzas) / math.sqrt(
+                   len(odchyleniaCzas)) > statistics.fmean(odchyleniaCzas) / 20)):
+            print("ooj: ", statistics.stdev(odchyleniaWynik) / math.sqrt(len(odchyleniaWynik)) / statistics.fmean(
+                odchyleniaWynik) * 100)
+            if (statistics.fmean(odchyleniaCzas) != 0):
+                print("oocz: ", statistics.stdev(odchyleniaCzas) / math.sqrt(len(odchyleniaCzas)) / statistics.fmean(
+                    odchyleniaCzas) * 100)
+            start = time.time()
+            wyniki.append(ocena(algorytm(graf)))
+            czasy.append(time.time() - start)
+            odchyleniaWynik.append(statistics.stdev(wyniki))
+            odchyleniaCzas.append(statistics.stdev(czasy))
         
     print("Srednia ocena jakosci cyklu: ", statistics.fmean(wyniki))
     print("Odchylenie odchylen jakosci: ", statistics.stdev(odchyleniaWynik)/math.sqrt(len(odchyleniaWynik)))
@@ -265,13 +272,25 @@ def rysujRozwiazanie(rozwiazanie, title = "", skalaWykresu = skalaWykresu):
     vals[:, 2] = np.linspace(1, 0, N)
     newcmp = matplotlib.colors.ListedColormap(vals)
     plot.colorbar(matplotlib.cm.ScalarMappable(norm=matplotlib.colors.Normalize(vmin=min(skalary), vmax=max(skalary)),cmap=newcmp))
-    
-dane = [10] + [50] #[i for (i in range(100, 1000))] na razie bez tych wiekszych danych
+
+def appendfile(filename,tekst):
+    f = open(filename,"at")
+    f.write(tekst)
+    f.close
+
+pre_file_name =time.strftime("%d_%m_%y_%H_%M_%S")
+naglowki = ["n","czas1020","czas1050","czas2020","czas2050","czas4020","czas4040","czassredni","czaslosowy","czaszachlanny",
+            "jak1020","jak1050","jak2020","jak2050","jak4020","jak4040","jaklosowy","jakzachlanny",
+            "bczas1020","bczas1050","bczas2020","bczas2050","bczas4020","bczas4040","bczaslosowy","bczaszachlanny",
+            "bjak1020","bjak1050","bjak2020","bjak2050","bjak4020","bjak4040","bjaklosowy","bjakzachlanny"]
+
+appendfile(pre_file_name,' '.join(naglowki)+"\n")
+dane = [4] + [5] #[i for (i in range(100, 1000))] na razie bez tych wiekszych danych
 tablicaJakosci = [[] for _ in range(len(dane))]
 tablicaCzasu = [[] for _ in range(len(dane))]
 tablicaBleduJakosci = [[] for _ in range(len(dane))]
 tablicaBleduCzasu = [[] for _ in range(len(dane))]
-for i in range(len(dane)-1, -1):    #zaczynam od konca, zeby nie sprawdzic czy algorytm trwa za dlugo
+for i in range(len(dane)-1, -1,-1):    #zaczynam od konca, zeby nie sprawdzic czy algorytm trwa za dlugo
     n = dane[i]
                                                                                                #generacja nowego grafu
     skalary = [(minSkalar + random.random() * (maxSkalar - minSkalar)) for _ in range(n)]
@@ -280,27 +299,55 @@ for i in range(len(dane)-1, -1):    #zaczynam od konca, zeby nie sprawdzic czy a
     start = time.time()
     kalibrujAlgorytm(n, 10, 20)
     (jakosc, czas, bladWOsiYJakosc, bladWOsiYCzas) = testuj(genetyczny, graf)
-    tablicaJakosc[i].append(jakosc)
-    tablicaJakosc[i].append(czas)
-    tablicaJakosc[i].append(bladWOsiYJakosc)
-    tablicaJakosc[i].append(bladWOsiYCzas)
-    #powtorz dla reszty
+    tablicaJakosci[i].append(jakosc)
+    tablicaCzasu[i].append(czas)
+    tablicaBleduJakosci[i].append(bladWOsiYJakosc)
+    tablicaBleduCzasu[i].append(bladWOsiYCzas)
     kalibrujAlgorytm(n, 10, 50)
     (jakosc, czas, bladWOsiYJakosc, bladWOsiYCzas) =  testuj(genetyczny, graf)
+    tablicaJakosci[i].append(jakosc)
+    tablicaCzasu[i].append(czas)
+    tablicaBleduJakosci[i].append(bladWOsiYJakosc)
+    tablicaBleduCzasu[i].append(bladWOsiYCzas)
     kalibrujAlgorytm(n, 20, 20)
     (jakosc, czas, bladWOsiYJakosc, bladWOsiYCzas) =  testuj(genetyczny, graf)
+    tablicaJakosci[i].append(jakosc)
+    tablicaCzasu[i].append(czas)
+    tablicaBleduJakosci[i].append(bladWOsiYJakosc)
+    tablicaBleduCzasu[i].append(bladWOsiYCzas)
     kalibrujAlgorytm(n, 20, 50)
     (jakosc, czas, bladWOsiYJakosc, bladWOsiYCzas) =  testuj(genetyczny, graf)
+    tablicaJakosci[i].append(jakosc)
+    tablicaCzasu[i].append(czas)
+    tablicaBleduJakosci[i].append(bladWOsiYJakosc)
+    tablicaBleduCzasu[i].append(bladWOsiYCzas)
     kalibrujAlgorytm(n, 40, 20)
     (jakosc, czas, bladWOsiYJakosc, bladWOsiYCzas) =  testuj(genetyczny, graf)
+    tablicaJakosci[i].append(jakosc)
+    tablicaCzasu[i].append(czas)
+    tablicaBleduJakosci[i].append(bladWOsiYJakosc)
+    tablicaBleduCzasu[i].append(bladWOsiYCzas)
     kalibrujAlgorytm(n, 40, 40)
     (jakosc, czas, bladWOsiYJakosc, bladWOsiYCzas) = testuj(genetyczny, graf)
-    #w jakis danych powinien byc tez sredni czas algoytmu
-    #wez srednia z tych czasow i zrob
-    czas = sredniczas
+    tablicaJakosci[i].append(jakosc)
+    tablicaCzasu[i].append(czas)
+    tablicaBleduJakosci[i].append(bladWOsiYJakosc)
+    tablicaBleduCzasu[i].append(bladWOsiYCzas)
+
+    tablicaCzasu.append(sum(tablicaCzasu[i])/len(tablicaCzasu[i]))
+
     (jakosc, czas, bladWOsiYJakosc, bladWOsiYCzas) = testuj(losowy, graf)
+    tablicaJakosci[i].append(jakosc)
+    tablicaCzasu[i].append(czas)
+    tablicaBleduJakosci[i].append(bladWOsiYJakosc)
+    tablicaBleduCzasu[i].append(bladWOsiYCzas)
     #tak zeby losowy mial jakis sensowny czas wykonania
     (jakosc, czas, bladWOsiYJakosc, bladWOsiYCzas) = testuj(zachlanny, graf)
+    tablicaJakosci[i].append(jakosc)
+    tablicaCzasu[i].append(czas)
+    tablicaBleduJakosci[i].append(bladWOsiYJakosc)
+    tablicaBleduCzasu[i].append(bladWOsiYCzas)
+    appendfile(pre_file_name,str(n)+" "+' '.join([str(n) for n in tablicaCzasu[i]])+" "+' '.join([str(n) for n in tablicaJakosci[i]])+" "+' '.join([str(n) for n in tablicaBleduCzasu[i]])+" "+' '.join([str(n) for n in tablicaBleduJakosci[i]])+"\n")
     #zapisz dane, zeby potem mozna uzyc w wykresie
     #Bledy zapisz po prostu w tablicy i przekaz tablice potem do yerr
     print(time.time() - start)
