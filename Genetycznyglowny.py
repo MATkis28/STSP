@@ -44,15 +44,15 @@ def ocenaSort(sols):
 def napraw(b_sol,krzyzowane,start,koniec):
     sol = b_sol[:]
     for i in range(start): # naprawa przed [start]
-        if krzyzowane.count(sol[i]) > 0:
-            for j in np.random.permutation([i for i in range(n)]):
-                if sol[:n].count(j)==0:
+        if krzyzowane.count(sol[i]) > 0:                                # zamiana wierzcholka z pierwszego osobnika
+            for j in np.random.permutation([i for i in range(n)]):      # na nie istniejacy jeszcze wierzcholek jesli
+                if sol[:n].count(j)==0:                                 # jesli znajduije sie on w fragmencie z drugiego osobnika
                     sol[i]=j
                     break
     for i in range (koniec+1,n): # naprawa po [koniec]
-        if krzyzowane.count(sol[i]) > 0:
-            for j in np.random.permutation([i for i in range(n)]):
-                if sol[:n].count(j)==0:
+        if krzyzowane.count(sol[i]) > 0:                                # zamiana wierzcholka z pierwszego osobnika
+            for j in np.random.permutation([i for i in range(n)]):      # na nie istniejacy jeszcze wierzcholek jesli
+                if sol[:n].count(j)==0:                                 # jesli znajduije sie on w fragmencie z drugiego osobnika
                     sol[i]=j
                     break
     sol[n]=sol[0]
@@ -82,20 +82,20 @@ def napraw2(b_sol,krzyzowane,start,koniec):
     return sol
 
 def krzyzuj(sol1,sol2):
-    start = random.randint(0,n-2)
+    start = random.randint(0,n-2)                       #wylosowanie fragmentu z drugiego osobnika
     koniec = random.randint(start,n-2)
     krzyzowane = sol2[start:koniec+1]
-    sol = sol1[:start]+krzyzowane+sol1[koniec+1:]
-    sol = napraw2(sol,krzyzowane,start,koniec)
+    sol = sol1[:start]+krzyzowane+sol1[koniec+1:]       #utworzenie nowego osobnika nakladajac wylosowany fragment na pierwszego osobnika
+    sol = napraw2(sol,krzyzowane,start,koniec)          #dobrowadzenie nowego osobnika do stanu w ktorym przestawia on sciezke
     return sol
 
 def mutuj (sol):
     xsol = sol[:]
-    w1 = random.randint(0,n-1)
+    w1 = random.randint(0,n-1)              #losowanie dwoch wierzcholkow na sciezce
     w2 = random.randint(1, n - 1)
     if w2 <= w1:
         w2 = w2 - 1
-    wtemp = xsol[w1]
+    wtemp = xsol[w1]                        #zamiana miejscami dwoch wybranych wierzcholkow
     xsol[w1]=xsol[w2]
     xsol[w2]=wtemp
     xsol[n]=xsol[0]
@@ -106,17 +106,21 @@ def krzyzimutacja(sol1,sol2):
     return mutuj(sol)
 
 def genetyka(graf, populacja, generacje):
-    sols = list([])
+    sols = list([])                         #wylosowanie startowej populacji
     for i in range(populacja):
         sols.append(losujSciezke())
-    sols = ocenaSort(sols)
+
+    sols = ocenaSort(sols)                  #wybranie 'populacja' najlepszych osobnikow
     sols=sols[:populacja]
+
     for i in range(generacje):
         solsnew = sols[:]
-        for j in range(round(populacja / 2)):
+
+        for j in range(round(populacja / 2)):                               #skrzyzowanie osobnikow parami 1,1,2,2,3,3 itd
             solsnew.append(krzyzimutacja(sols[j * 2], sols[j * 2 + 1]))
             solsnew.append(krzyzimutacja(sols[j * 2 + 1], sols[j * 2]))
-        solsnew = ocenaSort(solsnew)
+
+        solsnew = ocenaSort(solsnew)        #wybranie 'populacja' najlepszych osobnikow
         sols=solsnew[:populacja]
     return sols
 
@@ -159,25 +163,30 @@ def rysujRozwiazanie(rozwiazanie,title ="", skalaWykresu = skalaWykresu):
     plot.colorbar(matplotlib.cm.ScalarMappable(norm=matplotlib.colors.Normalize(vmin=min(skalary), vmax=max(skalary)),cmap=newcmp))
 
 
-print("\n========================\n    Obliczenie błedu:\n")
+print("\n========================\n    Obliczenie błedu:")
 print("Populacje: ",pop,"\nGeneracje: ",gen,"\nPowtorzenia: ",powtorzenia,"\n")
 odchylenia = list()
 for i in range(n,nmax+1):
     print("Wierzcholki: ",i)
     nstart = time.time()
     wynikg = list()
-    n = i
+
+    n = i                                                                                       #generacja nowego grafu
     skalary = [(minSkalar + random.random() * (maxSkalar - minSkalar)) for _ in range(n)]
     punkty = [(random.randint(0, maxPos), random.randint(0, maxPos)) for _ in range(n)]
     graf = generujGraf(n)
-    for j in range(powtorzenia):
+
+    for j in range(powtorzenia):                                #wykonianie 'powtorzenia' razy algorytmu genetycznego na tym samym grafie
         sols = genetyka(graf, pop, gen)
         wynikg.append(ocena(sols[0]))
+
     odchylenie = math.sqrt(statistics.variance(wynikg) / (len(wynikg) - 2))
     odchylenia.append(odchylenie)
+
     nkoniec=time.time()
     print("Dlugosc sciezki dla ostatniego powtorzenia: ", ocena(sols[0]))
     print("Odchylenie: ", odchylenie)
     print("Czas: ",nkoniec-nstart,"s\n")
+
 odchylenieodchylenia = math.sqrt(statistics.variance(odchylenia) / (len(odchylenia)*(len(odchylenia) - 1)))
 print("Odchylenie odchylenia: ",odchylenieodchylenia)
