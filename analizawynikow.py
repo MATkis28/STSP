@@ -3,7 +3,7 @@ import matplotlib.pyplot as plot
 import numpy as np
 
 naglowki = 1
-nazwaIn = "15_02_21_02_41_47" #nazwa pliku z danymi
+nazwaIn = "15_02_21_06_41_13" #nazwa pliku z danymi
 
 space = 0
 
@@ -39,11 +39,8 @@ ncolor = 0
 
 def wykres(x,y,blady,label,bladx=0):
     global ncolor
-    z1 = np.polyfit(x, y, 7)
-    p1 = np.poly1d(z1)
-    interpolacja = p1([i/100 for i in range(x[len(x)-1]*100, 1000)])
-    plot.plot([i/100 for i in range(x[len(x)-1]*100, 1000)], interpolacja,color=colors[ncolor])
-    plot.errorbar(x,y,yerr=blady,fmt='o',label=label,color=colors[ncolor])
+    #plot.plot([i/100 for i in range(x[len(x)-1]*100, 1000)], interpolacja,color=colors[ncolor])
+    plot.errorbar(x,y,yerr=blady,fmt='-o',label=label,color=colors[ncolor])
     ncolor=ncolor+1
 
 for i in range(kolumny):
@@ -62,6 +59,8 @@ plot.xlabel("Wierzchołki")
 plot.ylabel("Czas")
 plot.show()
 
+
+
 ncolor = 0
 jakgen=list()
 bjakgen=list()
@@ -73,6 +72,17 @@ plot.legend()
 plot.title("Zależność jakości od liczby wierzchołków")
 plot.xlabel("Wierzchołki")
 plot.ylabel("Jakosc")
+plot.show()
+
+ncolor = 0
+for i in range(1,6):
+    erry = [bjakgen[i][x] * 100 / jakgen[0][x] for x in range(len(jakgen[0]))]
+    y = [jakgen[i][x] * 100 / jakgen[0][x] for x in range(len(jakgen[0]))]
+    wykres(wierzcholki,y,erry,labels[i])
+plot.legend()
+plot.title("")
+plot.xlabel("Wierzchołki")
+plot.ylabel("Procent wyniku genetycznego populacji 10 i 20 generacji [%]")
 plot.show()
 
 ncolor = 0
@@ -114,4 +124,22 @@ plot.legend()
 plot.title("Zależność jakości od liczby wierzchołków")
 plot.xlabel("Wierzchołki")
 plot.ylabel("Jakosc")
+plot.show()
+
+ncolor = 0
+wykres(wierzcholki,jakgen[0],bjakgen[0],labels[0])
+wykres(wierzcholki,jakgen[2],bjakgen[2],labels[2])
+plot.legend()
+plot.title("Zależność jakości od liczby wierzchołków")
+plot.xlabel("Wierzchołki")
+plot.ylabel("Jakosc")
+plot.show()
+
+erry=[bjakgen[0][x]*100/jakgen[2][x] for x in range(len(jakgen[0]))]
+y=[jakgen[0][x]*100/jakgen[2][x] for x in range(len(jakgen[0]))]
+ncolor = 0
+wykres(wierzcholki,y,erry,"")
+plot.title("")
+plot.xlabel("Wierzchołki")
+plot.ylabel("Procent wyniku zachlannego [%]")
 plot.show()

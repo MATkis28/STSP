@@ -96,9 +96,8 @@ def operatorSelekcji(sols):
     global populacja
     newsols = sols 
     [newsols.append(x) for x in sols if x not in newsols]
-    sols = newsols
-    sols.sort(key=ocena)
-    sols=sols[:populacja]
+    newsols.sort(key=ocena)
+    return newsols[:populacja]
 
 #Drobne losowe zmiany
 def operatorMutacji(sol):
@@ -141,13 +140,13 @@ def operatorKrzyzowania(sols):
 #Wykonuje algorytm genetyczny
 def genetyczny(graf):
     global wstepnaPopulacja, populacja, generacje
-    sols = [losujSciezke() for _ in range(wstepnaPopulacja)]    #wylosowanie startowej populacji
+    sols = [losujSciezke() for _ in range(wstepnaPopulacja)]
+    sols.append(zachlanny(graf))
 
-    sols.sort(key=ocena)               
-    operatorSelekcji(sols)
+    sols = operatorSelekcji(sols)
     for i in range(generacje):
-        operatorKrzyzowania(sols) 
-        operatorSelekcji(sols)
+        operatorKrzyzowania(sols)
+        sols = operatorSelekcji(sols)
     return sols[0]
 
 #Ustawia nowe parametry algorytmu i generuje struktury pomocnicze (optymalizacyjne)
@@ -165,7 +164,7 @@ def kalibrujAlgorytm(newN, newPopulacja = populacja, newGeneracje = generacje):
 #Algorytm wyczerpujacy dla naszego problemu
 def wyczerpujacy(graf, skalary):
     bestSol = []
-    bestSum = sum(max(graf))*max(skalary)
+    bestSum = n * max(max(graf))*max(skalary)
     for p in itertools.permutations([i for i in range(n)]):
         sol = list(p)
         sol.append(sol[0])
@@ -285,12 +284,15 @@ naglowki = ["n","czas1020","czas1050","czas2020","czas2050","czas4020","czas4040
             "bjak1020","bjak1050","bjak2020","bjak2050","bjak4020","bjak4040","bjaklosowy","bjakzachlanny"]
 
 appendfile(pre_file_name,' '.join(naglowki)+"\n")
-dane = [10,50]+[i for i in range(100,600,100)]
+dane = [1,50]+[i for i in range(100,600,100)]
+#dane = [i for i in range(11)]
 #dane = [i for i in range(3, 11)] #na razie bez tych wiekszych danych
 tablicaJakosci = [[] for _ in range(len(dane))]
 tablicaCzasu = [[] for _ in range(len(dane))]
 tablicaBleduJakosci = [[] for _ in range(len(dane))]
 tablicaBleduCzasu = [[] for _ in range(len(dane))]
+
+
 for i in range(len(dane)-1, -1,-1):    #zaczynam od konca, zeby nie sprawdzic czy algorytm trwa za dlugo
     n = dane[i]
                                                                                                #generacja nowego grafu
@@ -298,6 +300,13 @@ for i in range(len(dane)-1, -1,-1):    #zaczynam od konca, zeby nie sprawdzic cz
     #punkty = [(random.randint(0, maxPos), random.randint(0, maxPos)) for _ in range(n)]
     graf = generujGraf(n, skalary)
     start = time.time()
+
+
+    #t = time.time()
+    #(sum,a)=wyczerpujacy(graf,skalary)
+    #tk = time.time()
+    #print(n," ",sum," ",tk-t)
+
     kalibrujAlgorytm(n, 10, 20)
     (jakosc, czas, bladWOsiYJakosc, bladWOsiYCzas) = testuj(genetyczny, graf)
     tablicaJakosci[i].append(jakosc)
@@ -335,7 +344,7 @@ for i in range(len(dane)-1, -1,-1):    #zaczynam od konca, zeby nie sprawdzic cz
     tablicaBleduJakosci[i].append(bladWOsiYJakosc)
     tablicaBleduCzasu[i].append(bladWOsiYCzas)
 
-    czas=sum(tablicaCzasu[i])/len(tablicaCzasu[i])
+    #czas=sum(tablicaCzasu[i])/len(tablicaCzasu[i])
     tablicaCzasu[i].append(czas)
 
     (jakosc, czas, bladWOsiYJakosc, bladWOsiYCzas) = testuj(losowy, graf)
