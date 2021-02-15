@@ -209,12 +209,12 @@ def testuj(algorytm, graf):
     czasy = []
     odchyleniaWynik = []
     odchyleniaCzas = []
-    print("0")
+    #print("0")
     start = time.time()
     wyniki.append(ocena(algorytm(graf)))
     czasy.append(time.time() - start)
     for i in range(1, 10):
-        print(i)
+    #    print(i)
         start = time.time()
         wyniki.append(ocena(algorytm(graf)))
         czasy.append(time.time() - start)
@@ -226,23 +226,23 @@ def testuj(algorytm, graf):
                 odchyleniaWynik) / 20 or
                (statistics.fmean(odchyleniaCzas) != 0 and statistics.stdev(odchyleniaCzas) / math.sqrt(
                    len(odchyleniaCzas)) > statistics.fmean(odchyleniaCzas) / 20)):
-            print("ooj: ", statistics.stdev(odchyleniaWynik) / math.sqrt(len(odchyleniaWynik)) / statistics.fmean(
-                odchyleniaWynik) * 100)
-            if (statistics.fmean(odchyleniaCzas) != 0):
-                print("oocz: ", statistics.stdev(odchyleniaCzas) / math.sqrt(len(odchyleniaCzas)) / statistics.fmean(
-                    odchyleniaCzas) * 100)
+            #print("ooj: ", statistics.stdev(odchyleniaWynik) / math.sqrt(len(odchyleniaWynik)) / statistics.fmean(
+            #    odchyleniaWynik) * 100)
+            #if (statistics.fmean(odchyleniaCzas) != 0):
+            #    print("oocz: ", statistics.stdev(odchyleniaCzas) / math.sqrt(len(odchyleniaCzas)) / statistics.fmean(
+            #        odchyleniaCzas) * 100)
             start = time.time()
             wyniki.append(ocena(algorytm(graf)))
             czasy.append(time.time() - start)
             odchyleniaWynik.append(statistics.stdev(wyniki))
             odchyleniaCzas.append(statistics.stdev(czasy))
         
-    print("Srednia ocena jakosci cyklu: ", statistics.fmean(wyniki))
-    print("Odchylenie odchylen jakosci: ", statistics.stdev(odchyleniaWynik)/math.sqrt(len(odchyleniaWynik)))
-    print("Srednie odchylenie jakosci: ", statistics.fmean(odchyleniaWynik))
-    print("Srednia ocena czasu cyklu: ", statistics.fmean(czasy))
-    print("Odchylenie odchylen czasu: ", statistics.stdev(odchyleniaCzas)/math.sqrt(len(odchyleniaCzas)))
-    print("Srednie odchylenie czasu: ", statistics.fmean(odchyleniaCzas))
+    #print("Srednia ocena jakosci cyklu: ", statistics.fmean(wyniki))
+    #print("Odchylenie odchylen jakosci: ", statistics.stdev(odchyleniaWynik)/math.sqrt(len(odchyleniaWynik)))
+    #print("Srednie odchylenie jakosci: ", statistics.fmean(odchyleniaWynik))
+    #print("Srednia ocena czasu cyklu: ", statistics.fmean(czasy))
+    #print("Odchylenie odchylen czasu: ", statistics.stdev(odchyleniaCzas)/math.sqrt(len(odchyleniaCzas)))
+    #print("Srednie odchylenie czasu: ", statistics.fmean(odchyleniaCzas))
     bladWOsiYJakosc = 15 * statistics.fmean(odchyleniaWynik)/4
     bladWOsiYCzas = 15 * statistics.fmean(odchyleniaCzas)/4
     return (statistics.fmean(wyniki), statistics.fmean(czasy), bladWOsiYJakosc, bladWOsiYCzas)
@@ -285,7 +285,8 @@ naglowki = ["n","czas1020","czas1050","czas2020","czas2050","czas4020","czas4040
             "bjak1020","bjak1050","bjak2020","bjak2050","bjak4020","bjak4040","bjaklosowy","bjakzachlanny"]
 
 appendfile(pre_file_name,' '.join(naglowki)+"\n")
-dane = [4] + [5] #[i for (i in range(100, 1000))] na razie bez tych wiekszych danych
+dane = [10,50]+[i for i in range(100,600,100)]
+#dane = [i for i in range(3, 11)] #na razie bez tych wiekszych danych
 tablicaJakosci = [[] for _ in range(len(dane))]
 tablicaCzasu = [[] for _ in range(len(dane))]
 tablicaBleduJakosci = [[] for _ in range(len(dane))]
@@ -334,11 +335,13 @@ for i in range(len(dane)-1, -1,-1):    #zaczynam od konca, zeby nie sprawdzic cz
     tablicaBleduJakosci[i].append(bladWOsiYJakosc)
     tablicaBleduCzasu[i].append(bladWOsiYCzas)
 
-    tablicaCzasu.append(sum(tablicaCzasu[i])/len(tablicaCzasu[i]))
+    czas=sum(tablicaCzasu[i])/len(tablicaCzasu[i])
+    tablicaCzasu[i].append(czas)
 
     (jakosc, czas, bladWOsiYJakosc, bladWOsiYCzas) = testuj(losowy, graf)
     tablicaJakosci[i].append(jakosc)
     tablicaCzasu[i].append(czas)
+    czas1=czas
     tablicaBleduJakosci[i].append(bladWOsiYJakosc)
     tablicaBleduCzasu[i].append(bladWOsiYCzas)
     #tak zeby losowy mial jakis sensowny czas wykonania
